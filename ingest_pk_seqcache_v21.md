@@ -51,3 +51,16 @@ CREATE TABLE uuid_uuid
 
 ## Results
 
+When a thread can cache batches of keys, the hot-spot can be eliminated.  In the extreme case where 1 million keys are cached, sequences with caching outpaces the `gen_random_uuid()` routine.  This makes sense as `UUID` is 128-bits and the *random* routines require more CPU than a simple cached lookup.
+
+```sql
+  autopktable | threads | loadseconds | rowsloaded | rowspersecond
+--------------+---------+-------------+------------+----------------
+  uuid_uuid   |      36 |        1800 |   21708303 |         12060
+  s1000000t   |      36 |        1800 |   24912664 |         13840
+  s100000t    |      36 |        1800 |   21016436 |         11676
+  s10000t     |      36 |        1800 |   13566724 |          7537
+```
+
+![QPS throughput](throughput_autopk_seqcache.png)
+![CPU per Node](cpu_autopk_seqcache.png)
