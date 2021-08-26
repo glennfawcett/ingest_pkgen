@@ -1,64 +1,45 @@
 # Ingest Auto PK Project
 
-*FIRST DRAFT OF JUST ENVIRONMENT CREATION*
-
-# Roachprod Create Prometheus Monitoring
 
 ## Create Cluster and Driver Machine
+
 ```bash
+## Configure CockroachDB Cluster SUT
+# roachprod create `whoami`-ingestpk --gce-machine-type 'n1-standard-16' --nodes 9 --lifetime 24h
+roachprod create `whoami`-ingestpk --gce-machine-type 'n1-standard-4' --nodes 9 --lifetime 24h
+roachprod stage `whoami`-ingestpk release v21.1.7
+roachprod start `whoami`-ingestpk
+roachprod pgurl `whoami`-ingestpk
+roachprod adminurl `whoami`-ingestpk:1
+        http://glenn-ingestpk-0001.roachprod.crdb.io:26258/
 
-## Create workload driver
-##
-roachprod create glenn-driver -n 1 --lifetime 36h
-
-## Create System Under Test (SUT)
-##
-roachprod create glenn-sut -n 3 --lifetime 36h
-roachprod stage glenn-sut release v20.1.1
-roachprod start glenn-sut
-
-## Setup workload driver
-##
-roachprod create glenn-driver -n1 --lifetime 120h
-roachprod stage glenn-driver release v20.1.1
-roachprod ssh glenn-driver
-sudo mv cockroach /usr/local/bin
-
-## Download CRDB  (Other than Roachprod)
-##
-#wget -qO- https://binaries.cockroachdb.com/cockroach-v19.2.4.linux-amd64.tgz | tar  xvz
-#cp -i cockroach-v19.2.4.linux-amd64/cockroach /usr/local/bin/
-#chmod 755 /usr/local/bin/cockroach
-
-##**Get IP address for host / haproxy**
-roachprod pgurl glenn-sut:1   ##--- get IPaddress for host below
-
-##**Setup HAproxy on Driver Machine**
+## Configure driver machine
+roachprod create `whoami`-drive -n 1 --lifetime 24h
+roachprod stage `whoami`-drive release v21.1.7
+roachprod ssh `whoami`-drive:1
+sudo mv ./cockroach /usr/local/bin
 sudo apt-get update -y
-sudo apt-get install haproxy -y
-cockroach gen haproxy --insecure   --host=(SUT internal IP)   --port=26257 
-nohup haproxy -f haproxy.cfg &
+sudo apt install htop
 
 ## Download workload binary if needed
-##
 wget https://edge-binaries.cockroachdb.com/cockroach/workload.LATEST
 chmod 755 workload.LATEST
-cp -i workload.LATEST /usr/local/bin/workload  
-chmod u+x /usr/local/bin/workload
-yum install libncurses*
+sudo cp -i workload.LATEST /usr/local/bin/workload
+sudo chmod u+x /usr/local/bin/workload
 
-## SETUP JMETER on Driver if needed
-sudo apt-get update
-sudo apt install default-jre -y
-wget https://apache.cs.utah.edu//jmeter/binaries/apache-jmeter-5.2.1.tgz
-tar xvf apache-jmeter-5.2.1.tgz
-cd apache-jmeter-5.2.1/lib
-wget -O postgresql-42.2.11.jar https://jdbc.postgresql.org/download/postgresql-42.2.11.jar
+## Setup HA proxy
+sudo apt-get update -y
+sudo apt-get install haproxy -y
+cockroach gen haproxy --insecure   --host=10.142.0.27   --port=26257 
+nohup haproxy -f haproxy.cfg &
 
 ## Setup Python if needed
 sudo apt-get update
-sudo apt install python3-pip
+sudo apt install python3-pip -y
 sudo pip3 install --upgrade pip
-sudo apt-get install libpq-dev python-dev
-sudo pip3 install psycopg2
+sudo apt-get install libpq-dev python-dev python3-psycopg2 python3-numpy -y
+
+
+## Put Python Script on Driver
+roachprod put glenn-drive:1 ./ingest-pk-concurrent.py 
 ```

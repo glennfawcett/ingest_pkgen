@@ -82,33 +82,26 @@ def worker_steady(num, tpsPerThread, targetTable, dbstr, runtime):
 QPS = 0
 numThreads = 36
 qpsPerThread = QPS/numThreads
-threadsPerHost = round(numThreads)
+threadsPerHost = round(numThreads/3)
 threads = []
 
 # Define Host:Port / Injection endpoints
 #
 dbcons = []
-dbcons.append(dbstr("defaultdb", "root", "localhost", 26257))
-
+dbcons.append(dbstr("ingestpkgen", "root", "localhost", 26257))
+dbcons.append(dbstr("ingestpkgen", "root", "localhost", 26259))
+dbcons.append(dbstr("ingestpkgen", "root", "localhost", 26261))
 
 # Define Tables to Test
 #
 tables = []
 tables.append('uuid_uuid')
-# tables.append('uuid_bytes')
-# tables.append('id_serial')
-# tables.append('id_seq')
-tables.append('s1000000t')
-tables.append('s100000t')
-tables.append('s10000t')
-# tables.append('s1000t')
-# tables.append('s100t')
-# tables.append('s10t')
-# tables.append('s0t')
-
+tables.append('uuid_bytes')
+tables.append('id_serial')
+tables.append('id_seq')
 
 # Runtime Per Table
-runtime = 900
+runtime = 120
 
 for tab in tables:
     print ("Inserting to table: {}".format(tab))
@@ -122,6 +115,6 @@ for tab in tables:
     for x in threads:
         x.join()
     
-    time.sleep(60)
+    time.sleep(10)
 
 exit()
