@@ -1,5 +1,6 @@
 # Ingest Auto PK Project
 
+The ingest autoPK project shows how the Cluster and Driver machines were created.  The [ingest-pk-concurrent.py](ingest-pk-concurrent.py) python script was created to test all of the table types.  The runtime and code can easily be adjusted should you want to reuse it test your own table types.
 
 ## Create Cluster and Driver Machine
 
@@ -34,9 +35,9 @@ cockroach gen haproxy --insecure   --host=10.142.0.27   --port=26257
 nohup haproxy -f haproxy.cfg &
 
 ## Setup Python if needed
-sudo apt-get update
-sudo apt install python3-pip -y
-sudo pip3 install --upgrade pip
+sudo apt-get update -y
+# sudo apt install python3-pip -y
+# sudo pip3 install --upgrade pip
 sudo apt-get install libpq-dev python-dev python3-psycopg2 python3-numpy -y
 
 
