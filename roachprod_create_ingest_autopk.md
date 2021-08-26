@@ -8,6 +8,7 @@ The ingest autoPK project shows how the Cluster and Driver machines were created
 ## Configure CockroachDB Cluster SUT
 # roachprod create `whoami`-ingestpk --gce-machine-type 'n1-standard-16' --nodes 9 --lifetime 24h
 roachprod create `whoami`-ingestpk --gce-machine-type 'n1-standard-4' --nodes 9 --lifetime 24h
+# roachprod stage `whoami`-ingestpk release v20.2.2
 roachprod stage `whoami`-ingestpk release v21.1.7
 roachprod start `whoami`-ingestpk
 roachprod pgurl `whoami`-ingestpk
