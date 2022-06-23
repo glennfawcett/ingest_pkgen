@@ -8,6 +8,37 @@ import random
 usleep = lambda x: time.sleep(x/1000000.0)
 msleep = lambda x: time.sleep(x/1000.0)
 
+def create_ddl(connStr):
+    
+    mycon = psycopg2.connect(connStr)
+    mycon.set_session(autocommit=True)
+    crbigfastddl1 = """
+    CREATE TABLE IF NOT EXISTS ingest_stress (
+        uuid1 UUID NOT NULL,
+        uuid2 UUID NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL,
+        updated_at TIMESTAMPTZ NOT NULL,
+        j JSONB NOT NULL,
+        id1 INT8 NULL AS ((j->>'k1':::STRING)::INT8) STORED,
+        id2 INT8 NULL AS ((j->>'k2':::STRING)::INT8) STORED,
+        id3 INT8 NULL AS ((j->>'k3':::STRING)::INT8) STORED,
+        id4 INT8 NULL AS ((j->>'k4':::STRING)::INT8) STORED,
+        INDEX idx_id1 (id1, created_at DESC),
+        INDEX idx_id1_storing (id1, created_at DESC) STORING (id2),
+        PRIMARY KEY (uuid1, uuid2)
+    );
+    """
+    #     ) WITH (ttl = 'on', ttl_automatic_column = 'on', ttl_expire_after = '24:00:00':::INTERVAL, ttl_label_metrics='true');
+
+    mycon = psycopg2.connect(connStr)
+    mycon.set_session(autocommit=True)
+    onestmt(mycon, "set experimental_enable_hash_sharded_indexes=true;")
+    onestmt(mycon, "DROP TABLE IF EXISTS ingest_stress;")
+    onestmt(mycon, crbigfastddl1)
+    onestmt(mycon, "ALTER TABLE ingest_stress SPLIT AT select gen_random_uuid() from generate_series(1,16);")
+    onestmt(mycon, "ALTER INDEX ingest_stress@idx_id1 SPLIT AT select  generate_series(1,100);")
+
+
 class dbstr:
   def __init__(self, database, user, host, port):
     self.database = database
@@ -96,11 +127,11 @@ dbcons.append(dbstr("defaultdb", "root", "localhost", 26257))
 tables = []
 tables.append('uuid_uuid')
 # tables.append('uuid_bytes')
-# tables.append('id_serial')
+tables.append('id_serial')
 # tables.append('id_seq')
-tables.append('s1000000t')
-tables.append('s100000t')
-tables.append('s10000t')
+# tables.append('s1000000t')
+# tables.append('s100000t')
+# tables.append('s10000t')
 # tables.append('s1000t')
 # tables.append('s100t')
 # tables.append('s10t')

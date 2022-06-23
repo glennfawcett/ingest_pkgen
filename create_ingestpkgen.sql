@@ -42,12 +42,51 @@ CREATE TABLE id_serial
     PRIMARY KEY (id)
 );
 
+-- SERIAL crc32c(unique_rowid()::string)
+--
+CREATE TABLE id_fnv64
+(
+    id INT DEFAULT abs(fnv64(unique_rowid()::string)),
+    thread_number int,  
+    host STRING,
+    port int,
+    ts TIMESTAMP DEFAULT current_timestamp(),
+    archive boolean DEFAULT false,
+    PRIMARY KEY (id)
+);
+
 -- Sequence using INT
 --
 CREATE SEQUENCE seqid INCREMENT BY 1;
 CREATE TABLE id_seq (
     id INT DEFAULT nextval('seqid'),
     thread_number int,
+    host STRING,
+    port int,
+    ts TIMESTAMP DEFAULT current_timestamp(),
+    archive boolean DEFAULT false,
+    PRIMARY KEY (id)
+);
+
+-- unordered_unique_rowid() using INT
+--
+CREATE TABLE id_unordered
+(
+    id INT DEFAULT unordered_unique_rowid(),
+    thread_number int,  
+    host STRING,
+    port int,
+    ts TIMESTAMP DEFAULT current_timestamp(),
+    archive boolean DEFAULT false,
+    PRIMARY KEY (id)
+);
+
+-- unordered_unique_rowid() using INT
+--
+CREATE TABLE id_ordered
+(
+    id INT DEFAULT unique_rowid(),
+    thread_number int,  
     host STRING,
     port int,
     ts TIMESTAMP DEFAULT current_timestamp(),
@@ -62,6 +101,8 @@ select count(*), 'id_seq' as test_table from id_seq;
 select count(*), 'id_serial' as test_table from id_serial;
 select count(*), 'uuid_bytes' as test_table from uuid_bytes;
 select count(*), 'uuid_uuid' as test_table from uuid_uuid;
+select count(*), 'id_unordered' as test_table from uuid_uuid;
+
 
 -- Test Insert... be sure to truncate before test run
 --
@@ -73,4 +114,5 @@ insert into id_seq (host, port, thread_number)
 select 'host2', 26257, 1 from generate_series (1,1);
 insert into id_seq (host, port, thread_number)
 select 'host3', 26257, 1 from generate_series (1,1);
+
 
