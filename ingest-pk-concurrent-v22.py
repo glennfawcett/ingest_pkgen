@@ -84,7 +84,7 @@ def create_ddl(connStr):
     
     mycon = psycopg2.connect(connStr)
     mycon.set_session(autocommit=True)
-    onestmt(mycon, "DROP TABLE IF EXISTS id_unordered;")
+    onestmt(mycon, "DROP TABLE IF EXISTS id_ordered;")
     cr_id_ordered = """
     CREATE TABLE id_ordered
     (
